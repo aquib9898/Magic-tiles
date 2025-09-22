@@ -1,6 +1,15 @@
 board = document.getElementById('canvas1');
-board.height = window.innerWidth;
-board.width = window.innerWidth/2;
+board.height = window.innerHeight;
+board.width = window.innerWidth;
+context=board.getContext("2d");
+context.fillStyle
+
+  let backgroundImg=new Image();
+  backgroundImg.src="";
+
+
+   context.fillStyle = 'white';
+   context.fillRect(470, 0, 520, window.innerHeight);
 
 
 
@@ -13,6 +22,8 @@ board.width = window.innerWidth/2;
     if (backgroundImg.complete) {
         context.drawImage(backgroundImg,0,0,boardWidth,boardHeight);
     }
+
+
 
 
     if(currentState===GAME_STATE.MENU){
