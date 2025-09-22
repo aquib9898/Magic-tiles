@@ -59,16 +59,21 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+document.addEventListener('keydown', (event) => {
+  
+  if (event.key === 'Enter') {
+    if(currentState===GAME_STATE.MENU){if(songSelected===1){currentState=GAME_STATE.STAGE1}}
+    if(currentState===GAME_STATE.MENU){if(songSelected===2){currentState=GAME_STATE.STAGE2}}
+  }
+});
 
 
 
 
+renderMenu();
 //This secetion will have all the functions i need. Hopefully
  function renderMenu(){
-    
-    
-
-    if(spidermanbg.complete){
+if(spidermanbg.complete){
         context.drawImage(spidermanbg, 0, 0, 626, 945, spidermanXcoordinate, spidermanYcoordinate , spidermanWidth, spidermanHeight)
     }
 
@@ -111,11 +116,71 @@ document.addEventListener('keydown', (event) => {
 
     
     context.fillStyle = 'white';
-    context.font = 'bold 32px "Segoe UI", sans-serif';
     context.textAlign = 'center';
-    context.textBaseline = 'middle';
     context.fillText('Start Level', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
     }
+
+
+    function renderStage1(){
+     
+      const bgGradient = context.createLinearGradient(0, 0, 0, board.height);
+      bgGradient.addColorStop(0, '#2c3e50'); 
+      bgGradient.addColorStop(1, '#3498db'); 
+      context.fillStyle = bgGradient;
+      context.fillRect(0, 0, board.width, board.height);
+  
+   
+      const playAreaX = (board.width - 400) / 2;
+      context.fillStyle = 'white';
+      context.fillRect(playAreaX, 0, 400, board.height);
+  
+    
+      context.strokeStyle = '#bdc3c7'; 
+      context.lineWidth = 2;
+      for (let i = 1; i < 4; i++) {                //adding looop logic to make 4 lines at a distnce of 100 each
+          const lineX = playAreaX + (100 * i);
+          context.beginPath();
+          context.moveTo(lineX, 0);
+          context.lineTo(lineX, board.height);
+          context.stroke();
+      }
+    }
+
+
+
+    function renderStage2(){
+     
+      const bgGradient = context.createLinearGradient(0, 0, 0, board.height);
+      bgGradient.addColorStop(0, '#2c3e50'); 
+      bgGradient.addColorStop(1, '#3498db'); 
+      context.fillStyle = bgGradient;
+      context.fillRect(0, 0, board.width, board.height);
+  
+   
+      const playAreaX = (board.width - 400) / 2;
+      context.fillStyle = 'white';
+      context.fillRect(playAreaX, 0, 400, board.height);
+  
+    
+      context.strokeStyle = '#bdc3c7'; 
+      context.lineWidth = 2;
+      for (let i = 1; i < 4; i++) {                //adding looop logic to make 4 lines at a distnce of 100 each
+          const lineX = playAreaX + (100 * i);
+          context.beginPath();
+          context.moveTo(lineX, 0);
+          context.lineTo(lineX, board.height);
+          context.stroke();
+      }
+    }
+
+
+
+    
+
+
+
+
+    
 
 
 
@@ -167,5 +232,8 @@ requestAnimationFrame(update)
 
     if(currentState===GAME_STATE.MENU){
         renderMenu();
-    }
+    }else if(currentState===GAME_STATE.STAGE1){
+      renderStage1();
+    }else if(currentState===GAME_STATE.STAGE2){
+      renderStage2();}
   }
