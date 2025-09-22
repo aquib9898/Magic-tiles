@@ -1,11 +1,37 @@
 board = document.getElementById('canvas1');
 board.height = window.innerHeight;
 board.width = window.innerWidth;
+
+
+
+// defining the state objects to switch from
+ let GAME_STATE = {
+    MENU: "menu",
+    STAGE1: "stage1",
+    STAGE2: "stage2",
+    GAME_OVER: "gameOver"
+  };
+
+  
+
+
+let currentState=GAME_STATE.MENU;
+let menuOption = 1;
+
+document.addEventListener("keydown",handleKeyDown);
+document.addEventListener("keyup",handleKeyUp);
+
+
+
+
 context=board.getContext("2d");
 context.fillStyle
 
   let backgroundImg=new Image();
   backgroundImg.src="";
+
+
+
 
 
    context.fillStyle = 'white';
