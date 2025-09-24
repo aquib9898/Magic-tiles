@@ -1,0 +1,3 @@
+Press 1/2 to select song then enter.
+
+press f to listen to song (freeplay)
