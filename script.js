@@ -67,6 +67,18 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+class Tile {
+  constructor(lane) {
+      this.width = 100;
+      this.height = 150;
+      this.lane = lane;
+      const playAreaX = (board.width - 400) / 2;  //dont need this but will reduce redundancy
+      this.x = playAreaX + (this.lane * 100);     //ez logic
+      this.y = -this.height;  //hide the tiles
+      this.color = 'black';
+      this.hit = false; 
+  }
+}
 
 
 
