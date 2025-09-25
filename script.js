@@ -1,12 +1,12 @@
 // --- GLOBAL VARIABLES & CONSTANTS ---
 
-// Canvas Setup
+
 const board = document.getElementById('canvas1');
 const context = board.getContext("2d");
 board.height = window.innerHeight;
 board.width = window.innerWidth;
 
-// state object
+// game states
 const GAME_STATE = {
     MENU: "menu",
     STAGE1: "stage1",
@@ -14,33 +14,37 @@ const GAME_STATE = {
     GAME_OVER: "gameOver"
 };
 
-// Game Assets & Menu Variables
+
 const spidermanbg = new Image();
 spidermanbg.src = "./spiderman.png";
-let spidermanWidth = 350;
-let spidermanHeight = 550;
+let spidermanWidth = 300;
+let spidermanHeight = 470;
 let spidermanXcoordinate = 400;
-let spidermanYcoordinate = 150;
+let spidermanYcoordinate = 100;
 
 const ranbirbg = new Image();
 ranbirbg.src = "./ranbirbg.png";
-let ranbirWidth = 350;
-let ranbirHeight = 550;
+let ranbirWidth = 300;
+let ranbirHeight = 470;
 let ranbirXcoordinate = 750;
-let ranbirYcoordinate = 150;
+let ranbirYcoordinate = 100;
 
-// Initial Game State
+const gameplayGif = new Image();
+gameplayGif.src = "./GifSpidey.gif"; // 
+
+
 let currentState = GAME_STATE.MENU;
 let scalespeed = 2.5;
+let songSelected = 0;
 
-// Menu Button Dimensions
-const buttonX = 580;
-const buttonY = board.height - 150;
+// Menu Buttons
 const buttonWidth = 300;
 const buttonHeight = 80;
+const buttonX = (board.width - buttonWidth) / 2;
+const buttonY = board.height - 120;
 
 
-// Stage Configuration
+
 const stageConfigs = {
     [GAME_STATE.STAGE1]: {
         song: new Audio('./sunflower.mp3'),
@@ -72,7 +76,7 @@ const stageConfigs = {
         isGameOver: false,
     },
     [GAME_STATE.STAGE2]: {
-        // Example for a future stage
+        // future stage
         // song: new Audio('./another-song.mp3'),
         // beatmap: [],
         tiles: [],
@@ -101,7 +105,7 @@ class Tile {
       this.lane = lane;
       const playAreaX = (board.width - 400) / 2;  //dont need this but will reduce redundancy
       this.x = playAreaX + (this.lane * 100);     //ez logic
-      this.y = -this.height;  //hide the tiles
+      this.y = -this.height;  
       this.color = 'black';
       this.hit = false; 
   }
@@ -116,6 +120,24 @@ if(spidermanbg.complete){
         context.drawImage(ranbirbg, 0, 0, 866, 991, ranbirXcoordinate, ranbirYcoordinate , ranbirWidth, ranbirHeight)
     }
 
+    if (songSelected === 1) {
+      if (spidermanHeight < 520) { spidermanHeight += scalespeed; }
+      if (spidermanWidth < 330) { spidermanWidth += 1.6; }
+      if(spidermanXcoordinate>370){spidermanXcoordinate-=1.5;}
+      if(spidermanYcoordinate > 70) { spidermanYcoordinate -= 1.5; }
+      if (ranbirHeight > 470) { ranbirHeight -= scalespeed; }
+      if (ranbirWidth > 300) { ranbirWidth -= 1.6; }
+      if(ranbirYcoordinate < 100) { ranbirYcoordinate += 1.5; }
+    } else if (songSelected === 2) {
+      if (ranbirHeight < 520) { ranbirHeight += scalespeed; }
+      if (ranbirWidth < 330) { ranbirWidth += 1.6; }
+      if(ranbirYcoordinate > 70) { ranbirYcoordinate -= 1.5; }
+      if(spidermanXcoordinate<400){spidermanXcoordinate+=1.5;}
+      if(spidermanYcoordinate < 100) { spidermanYcoordinate += 1.5; }
+      if (spidermanHeight > 470) { spidermanHeight -= scalespeed; }
+      if (spidermanWidth > 300) { spidermanWidth -= 1.6; }
+    }
+
     const gradient = context.createLinearGradient(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight);
     gradient.addColorStop(0, '#8E2DE2'); 
     gradient.addColorStop(1, '#4A00E0'); 
@@ -127,7 +149,7 @@ if(spidermanbg.complete){
     context.textAlign = 'center';
     context.fillText('Start Level', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
 
-    // highscore menu
+    // highscore 
     context.fillStyle = 'white';
     context.font = '30px Arial';
     context.textAlign = 'left';
@@ -144,6 +166,12 @@ function renderStage(stageConfig) {
     const playAreaX = (board.width - 400) / 2;
     context.fillStyle = 'white';
     context.fillRect(playAreaX, 0, 400, board.height);
+
+    
+    context.save();
+    context.globalAlpha = 0.6; 
+    context.drawImage(gameplayGif, playAreaX, 0, 400, board.height);
+    context.restore();
 
     context.strokeStyle = '#bdc3c7';
     context.lineWidth = 2;
@@ -184,36 +212,14 @@ function renderStage(stageConfig) {
 }
 
 
-    
-
-
-
-
-    
-
-
-
-
-
-
-
-   context.fillStyle = 'white';
-   context.fillRect(470, 0, 520, window.innerHeight);
-
-
-
-
-
-
-requestAnimationFrame(update)
-
  function update(){
     requestAnimationFrame(update);
     context.clearRect(0,0,board.width,board.height);
     if(currentState===GAME_STATE.MENU){
         renderMenu();
         
-        // Reset all stages when returning to menu
+//stage reset krne ke liye
+
         for (const stageKey in stageConfigs) {
             const config = stageConfigs[stageKey];
             if (config.song && !config.song.paused) {
@@ -242,7 +248,7 @@ requestAnimationFrame(update)
             config.song.play();
         }
 
-        const elapsedTime = (performance.now() - config.startTime) / 1000; // in seconds
+        const elapsedTime = (performance.now() - config.startTime) / 1000; 
 
         if (!config.isGameOver) {
             if (config.beatmapIndex < config.beatmap.length && elapsedTime >= config.beatmap[config.beatmapIndex][0]) {
@@ -283,7 +289,9 @@ requestAnimationFrame(update)
 document.addEventListener('keydown', (event) => {
     const key = event.key.toLowerCase();
     
-    if ((currentState === GAME_STATE.STAGE1 || currentState === GAME_STATE.STAGE2) && !stageConfigs[currentState].isGameOver) {
+    if (currentState === GAME_STATE.MENU) {
+    }
+    else if ((currentState === GAME_STATE.STAGE1 || currentState === GAME_STATE.STAGE2) && !stageConfigs[currentState].isGameOver) {
         const config = stageConfigs[currentState];
         if (key === 'f') {
             config.isFreeplay = !config.isFreeplay;
@@ -312,11 +320,16 @@ document.addEventListener('keydown', (event) => {
 
 board.addEventListener('click', (event) => {
     if (currentState === GAME_STATE.MENU) {
-        if (event.clientX > buttonX && event.clientX < buttonX + buttonWidth && event.clientY > buttonY && event.clientY < buttonY + buttonHeight) {
-            currentState = GAME_STATE.STAGE1;
+        if (event.clientX > spidermanXcoordinate && event.clientX < spidermanXcoordinate + spidermanWidth && event.clientY > spidermanYcoordinate && event.clientY < spidermanYcoordinate + spidermanHeight) {
+            songSelected = 1;
+        } else if (event.clientX > ranbirXcoordinate && event.clientX < ranbirXcoordinate + ranbirWidth && event.clientY > ranbirYcoordinate && event.clientY < ranbirYcoordinate + ranbirHeight) {
+            songSelected = 2;
+        } else if (songSelected !== 0 && event.clientX >= buttonX && event.clientX <= buttonX + buttonWidth && event.clientY >= buttonY && event.clientY <= buttonY + buttonHeight) {
+            if (songSelected === 1) { currentState = GAME_STATE.STAGE1; }
+            if (songSelected === 2) { currentState = GAME_STATE.STAGE2; }
         }
     }
 });
 
 // --- INITIAL EXECUTION ---
-requestAnimationFrame(update);
+update();
