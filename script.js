@@ -1,4 +1,4 @@
-// --- GLOBAL VARIABLES & CONSTANTS ---
+// --- global declars declars ----------------------------------------------------------------------------------------------------------
 
 
 const board = document.getElementById('canvas1');
@@ -31,6 +31,18 @@ let ranbirYcoordinate = 100;
 
 const gameplayGif = new Image();
 gameplayGif.src = "./GifSpidey.gif"; // 
+
+const ranbir1_bg = new Image();
+ranbir1_bg.src = "./ranbir1.png";
+
+const ranbir2_bg = new Image();
+ranbir2_bg.src = "./ranbir2.png";
+
+const miles2_bg = new Image();
+miles2_bg.src = "./miles2.png";
+
+const miles3_bg = new Image();
+miles3_bg.src = "./miles3.png";
 
 
 let currentState = GAME_STATE.MENU;
@@ -76,16 +88,55 @@ const stageConfigs = {
         isGameOver: false,
     },
     [GAME_STATE.STAGE2]: {
-        // future stage
-        // song: new Audio('./another-song.mp3'),
-        // beatmap: [],
+        song: new Audio('./BadtameezDil.mp3'),
+        beatmap: [
+    [0.2, 2], [1.9, 0], [2.4, 3], [3.2, 1], [3.6, 0], [4.0, 2], [4.4, 1], [4.8, 3], [5.2, 0], [5.6, 2],
+    [6.0, 1], [6.4, 0], [6.8, 3], [7.2, 2], [7.6, 0], [8.0, 1], [8.4, 3], [8.8, 2],
+    [9.2, 0], [9.6, 1], [10.0, 3], [10.4, 2], [10.8, 0], [11.2, 1], [11.6, 2], [12.0, 3],
+    [12.4, 0], [12.8, 2], [13.2, 1], [13.6, 3], [14.0, 0], [14.4, 1], [14.8, 2], [15.2, 3],
+    [15.6, 0], [16.0, 2], [16.4, 3], [16.8, 1], [17.2, 0], [17.6, 2], [18.0, 1], [18.4, 3],
+    [18.8, 0], [19.2, 2], [19.6, 1], [20.0, 3], [20.4, 0], [20.8, 2], [21.2, 1], [21.6, 3],
+    [22.0, 2], [22.4, 0], [22.8, 3], [23.2, 1], [23.6, 0], [24.0, 2], [24.4, 3], [24.8, 1],
+    [25.2, 0], [25.6, 2], [26.0, 1], [26.4, 3], [26.8, 0], [27.2, 2], [27.6, 3], [28.0, 1],
+    [28.4, 0], [28.8, 2], [29.2, 3], [29.6, 1], [30.0, 0], [30.4, 2], [30.8, 1], [31.2, 3],
+    [31.6, 0], [32.0, 2], [32.4, 3], [32.8, 1], [33.2, 0], [33.6, 2], [34.0, 1], [34.4, 3],
+    [34.8, 0], [35.2, 2], [35.6, 3], [36.0, 1], [36.4, 0], [36.8, 2], [37.2, 3], [37.6, 1],
+    [38.0, 0], [38.4, 2], [38.8, 1], [39.2, 3], [39.6, 0], [40.0, 2], [40.4, 1], [40.8, 3],
+    [41.2, 0], [41.6, 2], [42.0, 3], [42.4, 1], [42.8, 0], [43.2, 2], [43.6, 1], [44.0, 3],
+    [44.4, 0], [44.8, 2], [45.2, 1], [45.6, 3], [46.0, 0], [46.4, 2], [46.8, 3], [47.2, 1],
+    [47.6, 0], [48.0, 2], [48.4, 3], [48.8, 1], [49.2, 0], [49.6, 2], [50.0, 1], [50.4, 3],
+    [50.8, 0], [51.2, 2], [51.6, 3], [52.0, 1], [52.4, 0], [52.8, 2], [53.2, 1], [53.6, 3],
+    [54.0, 0], [54.4, 2], [54.8, 3], [55.2, 1], [55.6, 0], [56.0, 2], [56.4, 3], [56.8, 1],
+    [57.2, 0], [57.6, 2], [58.0, 1], [58.4, 3], [58.8, 0], [59.2, 2], [59.6, 3], [60.0, 1],
+    [60.4, 0], [60.8, 2], [61.2, 3], [61.6, 1], [62.0, 0], [62.4, 2], [62.8, 3], [63.2, 1],
+    [63.6, 0], [64.0, 2], [64.4, 1], [64.8, 3], [65.2, 0], [65.6, 2], [66.0, 3], [66.4, 1],
+    [66.8, 0], [67.2, 2], [67.6, 1], [68.0, 3], [68.4, 0], [68.8, 2], [69.2, 3], [69.6, 1],
+    [70.0, 0], [70.4, 2], [70.8, 1], [71.2, 3], [71.6, 0], [72.0, 2], [72.4, 3], [72.8, 1],
+    [73.2, 0], [73.6, 2], [74.0, 3], [74.4, 1], [74.8, 0], [75.2, 2], [75.6, 1], [76.0, 3],
+    [76.4, 0], [76.8, 2], [77.2, 3], [77.6, 1], [78.0, 0], [78.4, 2], [78.8, 3], [79.2, 1],
+    [79.6, 0], [80.0, 2], [80.4, 1], [80.8, 3], [81.2, 0], [81.6, 2], [82.0, 3], [82.4, 1],
+    [82.8, 0], [83.2, 2], [83.6, 1], [84.0, 3], [84.4, 0], [84.8, 2], [85.2, 3], [85.6, 1],
+    [86.0, 0], [86.4, 2], [86.8, 1], [87.2, 3], [87.6, 0], [88.0, 2], [88.4, 1], [88.8, 3],
+    [89.2, 0], [89.6, 2], [90.0, 3], [90.4, 1], [90.8, 0], [91.2, 2], [91.6, 1], [92.0, 3],
+    [92.4, 0], [92.8, 2], [93.2, 3], [93.6, 1], [94.0, 0], [94.4, 2], [94.8, 3], [95.2, 1],
+    [95.6, 0], [96.0, 2], [96.4, 1], [96.8, 3], [97.2, 0], [97.6, 2], [98.0, 3], [98.4, 1],
+    [98.8, 0], [99.2, 2], [99.6, 1], [100.0, 3], [100.4, 0], [100.8, 2], [101.2, 1], [101.6, 3],
+    [102.0, 0], [102.4, 2], [102.8, 3], [103.2, 1], [103.6, 0], [104.0, 2], [104.4, 3], [104.8, 1],
+    [105.2, 0], [105.6, 2], [106.0, 1], [106.4, 3], [106.8, 0], [107.2, 2], [107.6, 1], [108.0, 3],
+    [108.4, 0], [108.8, 2], [109.2, 3], [109.6, 1], [110.0, 0], [110.4, 2], [110.8, 3], [111.2, 1],
+    [111.6, 0], [112.0, 2], [112.4, 1], [112.8, 3], [113.2, 0], [113.6, 2], [114.0, 3], [114.4, 1],
+    [114.8, 0], [115.2, 2], [115.6, 1], [116.0, 3], [116.4, 0], [116.8, 2], [117.2, 3], [117.6, 1],
+    [118.0, 0], [118.4, 2], [118.8, 1], [119.2, 3], [119.6, 0], [120.0, 2], [120.4, 1], [120.8, 3],
+    [121.2, 0], [121.6, 2], [122.0, 3], [122.4, 1], [122.8, 0], [123.2, 2], [123.6, 1]
+
+        ],
         tiles: [],
         startTime: 0,
         beatmapIndex: 0,
         tileSpeed: 5,
         score: 0,
-        highScore: localStorage.getItem('anotherSongHighScore') || 0,
-        highScoreKey: 'anotherSongHighScore',
+        highScore: localStorage.getItem('badtameezDilHighScore') || 0,
+        highScoreKey: 'badtameezDilHighScore',
         missMessage: '',
         missMessageTimeout: 0,
         isFreeplay: false,
@@ -149,14 +200,9 @@ if(spidermanbg.complete){
     context.textAlign = 'center';
     context.fillText('Start Level', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
 
-    // highscore 
-    context.fillStyle = 'white';
-    context.font = '30px Arial';
-    context.textAlign = 'left';
-    context.fillText(`Spiderman High Score: ${stageConfigs[GAME_STATE.STAGE1].highScore}`, 20, 40);
 }
 
-function renderStage(stageConfig) {
+function renderStage(stageConfig, elapsedTime = 0) {
     const bgGradient = context.createLinearGradient(0, 0, 0, board.height);
     bgGradient.addColorStop(0, '#2c3e50');
     bgGradient.addColorStop(1, '#3498db');
@@ -170,7 +216,67 @@ function renderStage(stageConfig) {
     
     context.save();
     context.globalAlpha = 0.6; 
-    context.drawImage(gameplayGif, playAreaX, 0, 400, board.height);
+    const fadeOutStartTime = 15;
+    const fadeOutDuration = 5;
+    const fadeInStartTime = 20;
+    const fadeInDuration = 5;
+
+    const fadeOut2_StartTime = fadeInStartTime + fadeInDuration + 10; // 35s
+    const fadeOut2_Duration = 5;
+    const fadeIn2_StartTime = fadeOut2_StartTime + fadeOut2_Duration; // 40s
+    const fadeIn2_Duration = 5;
+
+    if (currentState === GAME_STATE.STAGE1) {
+        if (elapsedTime < fadeOutStartTime + fadeOutDuration) {
+            let opacity = 0.6;
+            if (elapsedTime > fadeOutStartTime) {
+                const progress = (elapsedTime - fadeOutStartTime) / fadeOutDuration;
+                opacity = 0.6 * (1 - progress);
+            }
+            context.globalAlpha = Math.max(0, opacity);
+            context.drawImage(gameplayGif, playAreaX, 0, 400, board.height);
+        }
+
+        // fadeout-----------------------------------------------------------------------------------------------------------------------------------
+        if (elapsedTime > fadeInStartTime && elapsedTime < fadeOut2_StartTime + fadeOut2_Duration) {
+            let opacity = 0.6;
+            if (elapsedTime < fadeInStartTime + fadeInDuration) { 
+                const progress = (elapsedTime - fadeInStartTime) / fadeInDuration;
+                opacity = 0.6 * progress;
+            } else if (elapsedTime > fadeOut2_StartTime) { 
+                const progress = (elapsedTime - fadeOut2_StartTime) / fadeOut2_Duration;
+                opacity = 0.6 * (1 - progress);
+            }
+            context.globalAlpha = Math.max(0, opacity);
+            context.drawImage(miles2_bg, playAreaX, 0, 400, board.height);
+        }
+
+        // fadein-----------------------------------------------------------------------------------------------------------------------------------
+        if (elapsedTime > fadeIn2_StartTime) {
+            const progress = Math.min(1, (elapsedTime - fadeIn2_StartTime) / fadeIn2_Duration);
+            context.globalAlpha = 0.6 * progress;
+            context.drawImage(miles3_bg, playAreaX, 0, 400, board.height);
+        }
+
+    } else if (currentState === GAME_STATE.STAGE2) {
+        // fadeout---------------------------------------------------------------------------------------------------------------------------------
+        if (elapsedTime < fadeOutStartTime + fadeOutDuration) {
+            let opacity1 = 0.6;
+            if (elapsedTime > fadeOutStartTime) {
+                const progress = (elapsedTime - fadeOutStartTime) / fadeOutDuration;
+                opacity1 = 0.6 * (1 - progress);
+            }
+            context.globalAlpha = Math.max(0, opacity1);
+            context.drawImage(ranbir1_bg, playAreaX, 0, 400, board.height);
+        }
+
+        // fadein--------------------------------------------------------------------------------------------------------------------------------------
+        if (elapsedTime > fadeInStartTime) {
+            const progress = Math.min(1, (elapsedTime - fadeInStartTime) / fadeInDuration);
+            context.globalAlpha = 0.6 * progress;
+            context.drawImage(ranbir2_bg, playAreaX, 0, 400, board.height);
+        }
+    }
     context.restore();
 
     context.strokeStyle = '#bdc3c7';
@@ -258,7 +364,7 @@ function renderStage(stageConfig) {
             }
         }
 
-        renderStage(config);
+        renderStage(config, elapsedTime);
 
         for (let i = config.tiles.length - 1; i >= 0; i--) {
             const tile = config.tiles[i];
@@ -302,7 +408,7 @@ document.addEventListener('keydown', (event) => {
             const targetTile = config.tiles.find(tile =>
                 !tile.hit &&
                 tile.lane === lanePressed &&
-                tile.y + tile.height > hitZoneY &&
+                tile.y + tile.height > (hitZoneY - 40) && 
                 tile.y < hitZoneY + 50
             );
 
