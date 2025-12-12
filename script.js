@@ -80,6 +80,8 @@ const stageConfigs = {
             [157, 1], [157.8, 2], [158.6, 0], [159.4, 3], [160.2, 1]
         ],
         tiles: [],
+        particles: [],
+        particleSpawners: [],
         startTime: 0,
         beatmapIndex: 0,
         tileSpeed: 5,
@@ -99,6 +101,7 @@ const stageConfigs = {
         meterIncrement: 3,
         multiplierActive: false,
         multiplierDuration: 5000,
+        multiplierValue: 2,
         multiplierStartTime: 0
     },
     [GAME_STATE.STAGE2]: {
@@ -139,6 +142,8 @@ const stageConfigs = {
             [105.2, 0], [105.6, 2], [106.0, 1], [106.4, 3], [106.8, 0], [107.2, 2], [107.6, 1], [108.0, 3]
         ],
         tiles: [],
+        particles: [],
+        particleSpawners: [],
         startTime: 0,
         beatmapIndex: 0,
         tileSpeed: 5,
@@ -158,6 +163,7 @@ const stageConfigs = {
         meterIncrement: 5,
         multiplierActive: false,
         multiplierDuration: 5000,
+        multiplierValue: 2,
         multiplierStartTime: 0
     }
 };
@@ -169,17 +175,80 @@ const keyMap = {
 const laneToKeyMap = Object.fromEntries(Object.entries(keyMap).map(([key, value]) => [value, key.toUpperCase()]));
 
 class Tile {
-  constructor(lane) {
+  constructor(lane, type = 'normal') {
+      this.type = type;
       this.width = 100;
-      this.height = 150;
+      this.height = (this.type === 'long' || this.type === 'doubleLong') ? 450 : 150;
       this.lane = lane;
       const playAreaX = (board.width - 400) / 2;
       this.x = playAreaX + (this.lane * 100);
       this.y = -this.height;
-      this.color = 'black';
+      this.color = this.type === 'doubleLong' ? '#FFD700' : 'black';
       this.hit = false;
+      this.isHolding = false;
+      this.hasBeenHeld = false;
+      this.holdStartTime = 0;
       this.key = laneToKeyMap[lane];
   }
+}
+
+class Particle {
+    constructor(x, y, type = 'attract') {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.initialSize = Math.random() * 8 + 2;
+        this.size = this.initialSize;
+        if (this.type === 'attract') {
+            this.speedX = Math.random() * 10 - 5;
+            this.speedY = Math.random() * 10 - 5;
+        } else {
+            this.speedX = Math.random() * 4 - 2;
+            this.speedY = -Math.random() * 3 - 1;
+        }
+        this.color = 'white';
+        this.life = 1;
+    }
+    update() {
+        if (this.type === 'attract') {
+            const playAreaX = (board.width - 400) / 2;
+            const meterX = playAreaX - 60;
+            const meterWidth = 40;
+            const meterHeight = Math.min(350, board.height * 0.5);
+            const meterY = 80;
+            const targetX = meterX + meterWidth / 2;
+            const targetY = meterY + meterHeight / 2;
+
+            const dx = targetX - this.x;
+            const dy = targetY - this.y;
+
+            this.speedX += dx * 0.00125;
+            this.speedY += dy * 0.00125;
+            this.speedX *= 0.92;
+            this.speedY *= 0.92;
+
+            this.x += this.speedX;
+            this.y += this.speedY;
+
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            this.size = Math.min(this.initialSize, this.initialSize * (dist / 200));
+            this.life -= 0.01;
+        } else {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.life -= 0.03;
+            this.size *= 0.95;
+        }
+    }
+    draw() {
+        context.save();
+        context.globalAlpha = this.life;
+        context.fillStyle = this.color;
+        context.beginPath();
+        context.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+    }
 }
 
 function renderMenu(){
@@ -210,6 +279,18 @@ function renderMenu(){
     }
 
     if (songSelected === 1) {
+        context.fillStyle = 'white';
+        context.font = 'bold 24px sans-serif';
+        context.textAlign = 'left';
+        context.fillText(`High Score: ${stageConfigs[GAME_STATE.STAGE1].highScore}`, spidermanXcoordinate + 20, spidermanYcoordinate + spidermanHeight - 20);
+    } else if (songSelected === 2) {
+        context.fillStyle = 'white';
+        context.font = 'bold 24px sans-serif';
+        context.textAlign = 'left';
+        context.fillText(`High Score: ${stageConfigs[GAME_STATE.STAGE2].highScore}`, ranbirXcoordinate + 20, ranbirYcoordinate + ranbirHeight - 20);
+    }
+
+    if (songSelected === 1) {
       if (spidermanHeight < 520) { spidermanHeight += scalespeed; }
       if (spidermanWidth < 330) { spidermanWidth += 1.6; }
       if (spidermanXcoordinate > 370) { spidermanXcoordinate -= 1.5; }
@@ -232,7 +313,9 @@ function renderMenu(){
     gradient.addColorStop(1, '#4A00E0');
 
     context.fillStyle = gradient;
-    context.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+    context.beginPath();
+    context.roundRect(buttonX, buttonY, buttonWidth, buttonHeight, 20);
+    context.fill();
 
     context.fillStyle = 'white';
     context.font = '30px sans-serif';
@@ -307,6 +390,57 @@ function renderStage(stageConfig, elapsedTime = 0) {
     context.textAlign = 'right';
     context.fillText(`High Score: ${stageConfig.highScore}`, board.width - 20, 40);
 
+    let currentMult = 1;
+    if (stageConfig.completionCounter > 0) currentMult *= 2;
+    if (stageConfig.multiplierActive) currentMult *= stageConfig.multiplierValue;
+
+    if (currentMult > 1) {
+        context.save();
+        context.translate(board.width / 2, 120);
+        let angle = Math.sin(performance.now() / 300) * 0.25;
+
+        if (currentMult >= 8) {
+            angle += (Math.random() - 0.5) * 0.1;
+            context.translate((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
+        }
+
+        context.rotate(angle);
+
+        if (currentMult >= 8) {
+            context.fillStyle = '#E0FFFF';
+            context.strokeStyle = '#00FFFF';
+            context.shadowColor = '#00FFFF';
+            context.shadowBlur = 20;
+
+            if (Math.floor(performance.now() / 50) % 2 === 0) {
+                context.save();
+                context.strokeStyle = 'rgba(200, 255, 255, 0.8)';
+                context.lineWidth = 3;
+                context.beginPath();
+                for (let k = 0; k < 4; k++) {
+                    let lx = (Math.random() - 0.5) * 40;
+                    let ly = (Math.random() - 0.5) * 40;
+                    context.moveTo(lx, ly);
+                    context.lineTo(lx + (Math.random() - 0.5) * 100, ly + (Math.random() - 0.5) * 100);
+                    context.lineTo(lx + (Math.random() - 0.5) * 150, ly + (Math.random() - 0.5) * 150);
+                }
+                context.stroke();
+                context.restore();
+            }
+        } else {
+            context.fillStyle = '#FFD700';
+            context.strokeStyle = 'white';
+        }
+
+        context.lineWidth = 2;
+        context.font = 'bold 80px sans-serif';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.strokeText(`${currentMult}X`, 0, 0);
+        context.fillText(`${currentMult}X`, 0, 0);
+        context.restore();
+    }
+
     if (stageConfig.isGameOver && stageConfig.missFadeState !== 'none') {
         const now = performance.now();
         const fadeDuration = 200;
@@ -356,25 +490,45 @@ function renderStage(stageConfig, elapsedTime = 0) {
     context.fillStyle = 'white';
     context.font = '14px sans-serif';
     context.textAlign = 'center';
-    context.fillText(stageConfig.multiplierActive ? '2x' : 'Meter', meterX + meterWidth / 2, meterY + meterHeight + 20);
+    context.fillText(stageConfig.multiplierActive ? `${stageConfig.multiplierValue}x` : 'Meter', meterX + meterWidth / 2, meterY + meterHeight + 20);
 }
 
 function handleTileHit(config, tile) {
     tile.hit = true;
-    const mult = config.multiplierActive ? 2 : 1;
-    config.score += 10 * mult;
+    let mult = 1;
+    if (config.completionCounter > 0) mult *= 2;
+    if (config.multiplierActive) mult *= config.multiplierValue;
+    const points = (tile.type === 'long' || tile.type === 'doubleLong') ? 30 : 10;
+    config.score += points * mult;
     if (config.score > config.highScore) {
         config.highScore = config.score;
         localStorage.setItem(config.highScoreKey, config.highScore);
     }
-    if (tile.color === 'black' && !config.multiplierActive) {
-        config.progressMeter += config.meterIncrement;
+    if (tile.type === 'doubleLong') {
+        config.multiplierActive = true;
+        config.multiplierValue = 8;
+        config.multiplierStartTime = performance.now();
+        config.progressMeter = 0;
+    } else if (!config.multiplierActive) {
+        if (tile.type === 'long') {
+            config.progressMeter += config.meterMax * 0.45;
+        } else if (tile.color === 'black') {
+            config.progressMeter += config.meterIncrement;
+        }
         if (config.progressMeter >= config.meterMax) {
             config.progressMeter = config.meterMax;
             config.multiplierActive = true;
             config.multiplierStartTime = performance.now();
         }
     }
+    config.particleSpawners.push({
+        x: tile.x + tile.width / 2,
+        y: tile.y + tile.height / 2,
+        startTime: performance.now(),
+        duration: 250,
+        count: 20,
+        spawned: 0
+    });
 }
 
 function resetStageConfig(config) {
@@ -385,6 +539,8 @@ function resetStageConfig(config) {
     config.startTime = 0;
     config.beatmapIndex = 0;
     config.tiles = [];
+    config.particles = [];
+    config.particleSpawners = [];
     config.score = 0;
     config.isGameOver = false;
     config.missFadeState = 'none';
@@ -393,6 +549,8 @@ function resetStageConfig(config) {
     config.completionCounter = 0;
     config.progressMeter = 0;
     config.multiplierActive = false;
+    config.multiplierValue = 2;
+    config.laneBlockedUntil = [0, 0, 0, 0];
 }
 
 function update(){
@@ -437,7 +595,35 @@ function update(){
         if (!config.isGameOver) {
             while (config.beatmapIndex < config.beatmap.length && elapsedTime >= config.beatmap[config.beatmapIndex][0]) {
                 const laneToSpawn = config.beatmap[config.beatmapIndex][1];
-                config.tiles.push(new Tile(laneToSpawn));
+                
+                if (!config.laneBlockedUntil) config.laneBlockedUntil = [0, 0, 0, 0];
+                if (elapsedTime < config.laneBlockedUntil[laneToSpawn]) {
+                    config.beatmapIndex++;
+                    continue;
+                }
+
+                const isDoubleLong = Math.random() < 0.015;
+                let spawnedDouble = false;
+
+                if (isDoubleLong) {
+                    const possibleLanes = [0, 1, 2, 3].filter(l => l !== laneToSpawn && elapsedTime >= config.laneBlockedUntil[l]);
+                    if (possibleLanes.length > 0) {
+                        const secondLane = possibleLanes[Math.floor(Math.random() * possibleLanes.length)];
+                        config.tiles.push(new Tile(laneToSpawn, 'doubleLong'));
+                        config.tiles.push(new Tile(secondLane, 'doubleLong'));
+                        config.laneBlockedUntil[laneToSpawn] = elapsedTime + 1.5;
+                        config.laneBlockedUntil[secondLane] = elapsedTime + 1.5;
+                        spawnedDouble = true;
+                    }
+                }
+
+                if (!spawnedDouble) {
+                    const isLong = Math.random() < 0.05;
+                    config.tiles.push(new Tile(laneToSpawn, isLong ? 'long' : 'normal'));
+                    if (isLong) {
+                        config.laneBlockedUntil[laneToSpawn] = elapsedTime + 1.5;
+                    }
+                }
                 config.beatmapIndex++;
             }
         }
@@ -446,17 +632,72 @@ function update(){
             if (elapsedMultiplier >= config.multiplierDuration) {
                 config.multiplierActive = false;
                 config.progressMeter = 0;
+                config.multiplierValue = 2;
             } else {
                 const remaining = 1 - (elapsedMultiplier / config.multiplierDuration);
                 config.progressMeter = Math.max(0, remaining * config.meterMax);
+
+                const playAreaX = (board.width - 400) / 2;
+                const meterX = playAreaX - 60;
+                const meterWidth = 40;
+                const meterHeight = Math.min(350, board.height * 0.5);
+                const meterY = 80;
+                const fillRatio = Math.max(0, Math.min(1, config.progressMeter / config.meterMax));
+                const fillH = Math.round(fillRatio * meterHeight);
+                const fillY = meterY + (meterHeight - fillH);
+
+                for (let k = 0; k < 2; k++) {
+                    config.particles.push(new Particle(
+                        meterX + Math.random() * meterWidth,
+                        fillY,
+                        'dissipate'
+                    ));
+                }
+            }
+        }
+
+        for (let i = config.particleSpawners.length - 1; i >= 0; i--) {
+            const spawner = config.particleSpawners[i];
+            const elapsed = now - spawner.startTime;
+            const particlesToSpawn = Math.floor((elapsed / spawner.duration) * spawner.count);
+
+            for (let j = spawner.spawned; j < particlesToSpawn && j < spawner.count; j++) {
+                config.particles.push(new Particle(spawner.x, spawner.y));
+                spawner.spawned++;
+            }
+
+            if (elapsed >= spawner.duration) {
+                for (let j = spawner.spawned; j < spawner.count; j++) {
+                    config.particles.push(new Particle(spawner.x, spawner.y));
+                }
+                config.particleSpawners.splice(i, 1);
             }
         }
         renderStage(config, elapsedTime);
+        for (let i = config.particles.length - 1; i >= 0; i--) {
+            const p = config.particles[i];
+            p.update();
+            p.draw();
+            if (p.life <= 0) {
+                config.particles.splice(i, 1);
+            }
+        }
         for (let i = config.tiles.length - 1; i >= 0; i--) {
             const tile = config.tiles[i];
             tile.y += config.tileSpeed;
+            if (tile.isHolding) {
+                const holdDuration = now - tile.holdStartTime;
+                const speedMultiplier = 1 + (config.completionCounter * 0.1);
+                if (holdDuration >= 300 / speedMultiplier) {
+                    handleTileHit(config, tile);
+                }
+            }
             if (!tile.hit) {
-                context.fillStyle = tile.color;
+                if ((tile.type === 'long' || tile.type === 'doubleLong') && tile.isHolding) {
+                    context.fillStyle = 'gray';
+                } else {
+                    context.fillStyle = tile.color;
+                }
                 context.fillRect(tile.x, tile.y, tile.width, tile.height);
                 context.fillStyle = 'white';
                 context.font = 'bold 40px sans-serif';
@@ -465,10 +706,14 @@ function update(){
                 context.fillText(tile.key, tile.x + tile.width / 2, tile.y + tile.height / 2);
             }
             if (tile.y > board.height && !tile.hit && !config.isFreeplay && !config.isGameOver) {
-                config.isGameOver = true;
-                config.song.pause();
-                config.missFadeState = 'in';
-                config.missFadeStartTime = performance.now();
+                if ((tile.type === 'long' || tile.type === 'doubleLong') && tile.hasBeenHeld) {
+                    // Long tile was touched, so no miss penalty, but no points either.
+                } else {
+                    config.isGameOver = true;
+                    config.song.pause();
+                    config.missFadeState = 'in';
+                    config.missFadeStartTime = performance.now();
+                }
             }
             if (tile.y > board.height + tile.height || tile.hit) {
                 config.tiles.splice(i, 1);
@@ -484,6 +729,17 @@ function update(){
         }
     }
 }
+
+document.addEventListener('keyup', (event) => {
+    if (currentState === GAME_STATE.MENU) return;
+    const key = event.key.toLowerCase();
+    const lane = keyMap[key];
+    if (lane !== undefined && (currentState === GAME_STATE.STAGE1 || currentState === GAME_STATE.STAGE2)) {
+        const config = stageConfigs[currentState];
+        const heldTile = config.tiles.find(t => t.lane === lane && t.isHolding);
+        if (heldTile) heldTile.isHolding = false;
+    }
+});
 
 document.addEventListener('keydown', (event) => {
     const key = event.key.toLowerCase();
@@ -505,7 +761,41 @@ document.addEventListener('keydown', (event) => {
                 tile.y < hitZoneY + 50
             );
             if (targetTile) {
-                handleTileHit(config, targetTile);
+                if (targetTile.type === 'long' || targetTile.type === 'doubleLong') {
+                    if (!targetTile.isHolding) {
+                        targetTile.isHolding = true;
+                        targetTile.hasBeenHeld = true;
+                        targetTile.holdStartTime = performance.now();
+                    }
+                } else {
+                    handleTileHit(config, targetTile);
+                }
+            }
+        }
+    }
+});
+
+board.addEventListener('mouseup', (event) => {
+    if (currentState === GAME_STATE.STAGE1 || currentState === GAME_STATE.STAGE2) {
+        const config = stageConfigs[currentState];
+        config.tiles.forEach(t => t.isHolding = false);
+    }
+});
+
+board.addEventListener('mousedown', (event) => {
+    if (currentState === GAME_STATE.STAGE1 || currentState === GAME_STATE.STAGE2) {
+        const config = stageConfigs[currentState];
+        for (let i = config.tiles.length - 1; i >= 0; i--) {
+            const tile = config.tiles[i];
+            if (!tile.hit && event.clientX >= tile.x && event.clientX <= tile.x + tile.width && event.clientY >= tile.y && event.clientY <= tile.y + tile.height) {
+                if (tile.type === 'long' || tile.type === 'doubleLong') {
+                    tile.isHolding = true;
+                    tile.hasBeenHeld = true;
+                    tile.holdStartTime = performance.now();
+                } else {
+                    handleTileHit(config, tile);
+                }
+                break;
             }
         }
     }
@@ -528,16 +818,6 @@ board.addEventListener('click', (event) => {
             }
         }
         return;
-    }
-    if (currentState === GAME_STATE.STAGE1 || currentState === GAME_STATE.STAGE2) {
-        const config = stageConfigs[currentState];
-        for (let i = config.tiles.length - 1; i >= 0; i--) {
-            const tile = config.tiles[i];
-            if (!tile.hit && event.clientX >= tile.x && event.clientX <= tile.x + tile.width && event.clientY >= tile.y && event.clientY <= tile.y + tile.height) {
-                handleTileHit(config, tile);
-                break;
-            }
-        }
     }
 });
 
