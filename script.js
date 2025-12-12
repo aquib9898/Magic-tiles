@@ -266,7 +266,7 @@ function renderMenu(){
     context.restore();
 
     context.fillStyle = 'white';
-    context.font = 'bold 100px cursive';
+    context.font = 'bold 80px cursive';
     context.textAlign = 'center';
     context.fillText('Select Level', board.width / 2, 120);
 
@@ -800,6 +800,7 @@ board.addEventListener('mousedown', (event) => {
         }
     }
 });
+
 
 board.addEventListener('click', (event) => {
     if (currentState === GAME_STATE.MENU) {
